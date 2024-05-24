@@ -1,0 +1,268 @@
+---
+title: "Système éducatif actuel"
+author: "Mohamed Khalil Fadhlaoui"
+output: pdf_document
+date: "2024-05-09"
+---
+
+# Introduction
+L'éducation occupe une place centrale dans la société tunisienne, tant sur le plan culturel que sur le plan socio-économique.Cependant, malgré les progrès réalisés au fil des décennies, le système éducatif tunisien a été confronté à plusieurs défis.Ce projet vise étudier les différents avis des tunisiens sur l'éducation d'une manière générale et sur le système éducatif actuel en particulier, afin d'identifier ses lacunes.
+
+# Statistiques descriptives
+## Importation des données:
+```{r, echo=TRUE}
+library(readxl)
+edu <- read_excel("C:/Users/User/Desktop/Projet/education.xlsx")
+```
+
+## Répartition selon le sexe
+```{r, echo=TRUE}
+library(ggplot2)
+Homme <- sum(edu$sexe == "Homme")
+Femme <- sum(edu$sexe == "Femme")
+data <- data.frame(Sexe = factor(c("Homme", "Femme")), 
+                   n = c(Homme, Femme))
+ggplot(data, aes(x = "", y = n, fill = Sexe)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  theme_void() +
+  scale_fill_manual(values = c("#e41a1c", "#377eb8")) +
+  geom_text(aes(label = paste0(round(n/sum(n)*100), "%")), 
+            position = position_stack(vjust = 0.5)) +
+  labs(title = "Répartition par genre")
+```
+Selon les résultats de l’enquête, sur un total de 34 personnes interrogées, 53% sont des femmes.Cela peut indiquer une légère majorité des hommes parmi la population.
+
+## Répartition selon l'age
+```{r, echo=TRUE}
+# Compter le nombre d'individus dans chaque catégorie d'âge
+count_age <- table(edu$Age)
+
+# Créer un data frame avec les données
+data_age <- data.frame(Age = factor(names(count_age)), 
+                       n = as.numeric(count_age))
+
+# Créer un graphique en secteurs avec ggplot2
+ggplot(data_age, aes(x = "", y = n, fill = Age)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  theme_void() +
+  scale_fill_brewer(palette = "Set3") +  # Utiliser une palette de couleurs
+  geom_text(aes(label = paste0(round(n/sum(n)*100), "%")), 
+            position = position_stack(vjust = 0.5)) +
+  labs(title = "Répartition par âge")
+```
+La majorité des personnes interrogées sont agées entre 18 et 25 ans.
+
+## Répartition par catégorie socioprofessionnelle
+```{r, echo=TRUE}
+colors <- c("#003f5c", "#2f4b7c", "#665191", "#a05195")
+barplot(table(edu$'Catégorie socioprofessionnelle'), col=colors, ylim=c(0, 40),
+ main="Répartition par spécialité", xlab="Catégorie socioprofessionnelle", ylab="Nombre")
+
+
+```
+La majorité des personnes interrogées sont des étudiants.
+
+#  Analyse en Composantes Principales
+## Matrice de corrélation
+```{r, echo=TRUE}
+library(corrplot)
+X=as.matrix(edu[,c(29:46)])
+M<-cor(X)
+library(RColorBrewer)
+corrplot(M, type="upper", order="hclust",
+col=brewer.pal(n=8, name="RdBu"))
+
+```
+q21: le système éducatif actuel répond aux besoins des apprenants
+
+q22: le système éducatif actuel prépare les apprenants au marché du travail
+
+q23: le système éducatif actuel utilise des méthodes d'évaluations efficaces pour mesurer les progrès des apprenants
+
+q24: le système éducatif actuel comporte des enseignants qui sont adéquatement formés pour répondre aux besoins des apprenants
+
+q25: le système éducatif actuel fournit  des opportunités égales d'apprentissage
+
+q26: le système éducatif actuel encourage l'innovation pédagogique et les nouvelles méthodes d'enseignement
+
+q27: le système éducatif actuel prépare les apprenants à s'adapter aux changements sociaux et technologiques
+
+q28: le système éducatif actuel promeut la diversité culturelle et l'inclusion
+
+q29: le système éducatif actuel soutient le bien-être émotionnel et mental des apprenants
+
+q210: le système éducatif actuel valorise les compétences non académiques telles que la créativité, la collaboration et la résolution des problèmes
+
+q211: le système éducatif actuel tient compte des différentes intelligences et styles d'apprentissage des apprenants
+
+q212: le système éducatif actuel prépare les apprenants  à la gestion de leurs argents et à la prise de décision financière
+
+q213: le système éducatif actuel encourage la participation citoyenne et le respect des droits de l'homme
+
+q214: le système éducatif actuel emploie convenablement les technologies émergentes
+
+q215: le système éducatif actuel permet  aux individus de se former et de se reconvertir tout au long de leur vie professionnelle
+
+q216: le système éducatif actuel tient compte des apprenants ayant des besoins spécifiques (situation de handicap, les élèves à haut potentiel, ...) 
+
+q217: le système éducatif actuel accorde une importance à la pratique
+
+q218: le système éducatif actuel encourage les apprenants à développer leur créativité et imagination
+
+### Interprétation:
+La matrice de corrélation suggère que “q27” et “q214” sont des variables étroitement liées, tandis que “q214” et “q216” sont moins liées.
+
+## Execution de la fonction PCA.
+```{r, echo=TRUE}
+library(FactoMineR)
+library(factoextra)
+res.pca=PCA(X,ncp = 4,graph= F)
+```
+
+## Choix du nombre d’axes à retenir
+```{r, echo=TRUE}
+head(res.pca$eig)
+```
+```{r, echo=TRUE}
+fviz_eig(res.pca, addlabels = TRUE) +
+ ggtitle("Diagramme de l'éboulis : Valeurs propres")
+```
+
+### Interprétation
+
+### 1-Critère de Kaiser: On retiendrait les composantes principales dont la valeur propre est supérieure à 1,ce qui signifie qu'on va retenir les trois premières composantes principales.
+
+### 2-Critère du taux d’inertie cumulée: On remarque que le taux d’inertie cumulé des 2 premiers axes est de 59.63% qui est un taux important compte tenu du fait que nous avons 18 variables: on va donc, d’après ce critère, retenir les 2 premiers axes.
+
+### 3-Critère du coude : On remarque que le coude se trouve au niveau du deuxième axe (voir 'Diagramme de l'éboulis'), d’après ce critère, on devrait retenir les 2 premiers axes.
+
+### Conclusion: Nous pourrions retenir les deux premières composantes principales qui expliquent environ 59.63% de l’inertie totale.
+
+## Interpretation de la carte des variables :
+```{r, echo=TRUE}
+res.pca$var$coord
+```
+```{r, echo=TRUE}
+fviz_pca_var(res.pca,shadow=TRUE)
+```
+
+### Interprétation:
+
+#### Sur la première composante principale, on peut observer une forte contribution des variables “q21”, “q29”, “q212” et"q218". Ces variables sont donc fortement corrélées à la première composante principale.
+
+#### Sur la deuxième composante principale, les variables “q23”, “q211" et “216” sont les plus corrélées.
+
+#### Ces observations indiquent que les variables qui contribuent le plus à la première composante principale sont celles qui sont liées aux besoins matériels et réels des apprenants. Les variables qui contribuent le plus à la deuxième composante principale sont celles qui sont liées aux besoins spécifiques des apprenants.
+
+## Tableau des cosinus carrés des variables sur les axes de l’ACP
+```{r, echo=TRUE}
+res.pca$var$cos2
+```
+```{r, echo=TRUE}
+fviz_pca_var(res.pca, col.var = "cos2")+
+ scale_color_gradient2(low="white" ,mid="blue" ,
+ high="red", midpoint = 0.6)+
+ theme_minimal()
+```
+
+### Interprétation:
+On peut voir que les variables “q21”, “q29”, “q212” et "q218" ont des cosinus élevés pour la première dimension de l’ACP, ce qui indique qu’elles contribuent fortement à la formation de cette dimension. De même, les variables “q23”, “q211” et "q216" ont des cosinus élevés pour la deuxième dimension de l’ACP
+
+## La carte des individus
+```{r, echo=TRUE}
+fviz_pca_ind(res.pca,geom = "text",col.ind="cos2")+
+scale_color_gradient2(low="blue", mid="white",
+ high="red", midpoint=0.5)
+```
+
+# ACM
+```{r, echo=TRUE}
+library(FactoMineR)
+library(factoextra)
+l.active<-edu[8:13]
+res.mca <- MCA (l.active, graph = FALSE)
+```
+## Visualisation et interpretation :
+```{r, echo=TRUE}
+res.mca$eig
+```
+```{r, echo=TRUE}
+library(ggplot2)
+library(factoextra)
+fviz_eig(res.mca, addlabels = TRUE) +
+ ggtitle("Diagramme de l'éboulis : Valeurs propres")
+```
+
+### Interprétation
+
+### 1-Critère de Kaiser: seule la première dimension répond à ce critère, ce qui signifie qu'elle est la plus importante pour expliquer les données.
+
+### 2-Critère du taux d’inertie cumulée: les deux premières dimensions cumulent une proportion de variance d'environ 45.8%, ce qui suggère que ces deux dimensions sont importantes pour expliquer les données.
+
+### 3-Critère du coude : On peut voir que le coude se situe après la deuxième composante principale, ce qui indique que l’on peut se contenter de retenir les deux premières composantes principales.
+
+## Interprétation de la première carte des modalités
+
+### Représentation de la première carte des modalités
+```{r, echo=TRUE}
+fviz_mca_var(res.mca,
+ col.var = "contrib", # Couleur en fonction de la contribution
+ gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), # Choix de couleurs
+ repel = TRUE, # Évite le chevauchement des labels
+ ggtheme = theme_minimal() # Style du graphique
+ )
+```
+```{r, echo=TRUE}
+dimdesc(res.mca, axes=1:2, proba=0.05)$`Dim 1`
+```
+### Interpretation: l’axe 1 dans cette analyse ACM semble être un axe des critères de l'éducation.
+
+```{r, echo=TRUE}
+dimdesc(res.mca, axes=1:2, proba=0.05)$'Dim 2'
+```
+### Interpretation: l’axe 2 dans cette analyse ACM semble être un axe d'importance de l'apprentissage continu.
+
+## Interprétation de la première carte des individus 
+
+### Représentation de la première carte des individus
+```{r, echo=TRUE}
+fviz_mca_ind (res.mca,select.ind = list(cos2 = 0.4),
+ repel = TRUE,
+ ggtheme = theme_minimal ())
+```
+# Classification
+```{r, echo=TRUE}
+new<-edu[29:46]
+c<-dist(scale(new),method="euclidean")
+h<- hclust(c, method="ward.D2")
+plot(h, hang = -1, cex =0.6)
+library(FactoMineR)
+res.HCPC<-HCPC(new, consol=TRUE, graph=F)
+plot.HCPC(res.HCPC,choice='tree', title ='Hierarchical tree')
+```
+
+### On peut choisir 3 classes
+
+## Arbre hiérarchique :
+```{r, echo=TRUE}
+plot.HCPC(res.HCPC, choice = 'map', draw.tree=FALSE, title ='Factor map')
+```
+```{r, echo=TRUE}
+plot.HCPC(res.HCPC,choice = '3D.map', ind.names=FALSE, centres.plot=FALSE, angles=60,title='Hierarchical tree on the factor map')
+```
+
+## description des classes par les variables:
+```{r, echo=TRUE}
+res.HCPC$desc.var
+```
+## Interprétations:
+
+### * Le cluster 1 privilégie l'aspect pratique et léemploi de la technologie dans le système éducatif.
+
+### * Le cluster 2 privilégie les besoins des apprenants et la qualité de leur formation.
+
+### * Le cluster 3 privilégie la prise en compte des différentes intelligences et des compétences non académique des apprenants.
+
+
